@@ -1,0 +1,2076 @@
+{
+  "name": "SemanticModel",
+  "compatibilityLevel": 1400,
+  "model": {
+    "culture": "en-US",
+    "dataSources": [
+      {
+        "type": "structured",
+        "name": "SQL/atlsqlprddbv4;UPD",
+        "connectionDetails": {
+          "protocol": "tds",
+          "address": {
+            "server": "atlsqlprddbv4",
+            "database": "UPD"
+          },
+          "authentication": null,
+          "query": null
+        },
+        "credential": {
+          "AuthenticationKind": "Windows",
+          "kind": "SQL",
+          "path": "atlsqlprddbv4;UPD",
+          "Username": "amd\\sung",
+          "EncryptConnection": false
+        }
+      },
+      {
+        "type": "structured",
+        "name": "SQL/AUSEDWDBP00;MDS",
+        "connectionDetails": {
+          "protocol": "tds",
+          "address": {
+            "server": "AUSEDWDBP00",
+            "database": "MDS"
+          },
+          "authentication": null,
+          "query": null
+        },
+        "credential": {
+          "AuthenticationKind": "Windows",
+          "kind": "SQL",
+          "path": "ausedwdbp00;MDS",
+          "Username": "amd\\sung",
+          "EncryptConnection": false
+        }
+      }
+    ],
+    "tables": [
+      {
+        "name": "TimeStamp",
+        "columns": [
+          {
+            "name": "TimeStamp",
+            "dataType": "dateTime",
+            "sourceColumn": "Column1"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Partition",
+            "dataView": "full",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = ",
+                "         Sql.Database(",
+                "        \"atlsqlprddbv4\", ",
+                "        \"UPD\", ",
+                "        [Query=\"SELECT GETDATE()\"])",
+                "",
+                "in",
+                "    Source"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Parts",
+        "columns": [
+          {
+            "name": "PRODUCT_SUB_FAMILY",
+            "dataType": "string",
+            "sourceColumn": "PRODUCT_SUB_FAMILY"
+          },
+          {
+            "name": "EXTERNAL_DEVICE",
+            "dataType": "string",
+            "sourceColumn": "EXTERNAL_DEVICE"
+          },
+          {
+            "name": "PART_NAME",
+            "dataType": "string",
+            "sourceColumn": "PART_NAME"
+          },
+          {
+            "name": "SOCKET_CODE",
+            "dataType": "string",
+            "sourceColumn": "SOCKET_CODE"
+          },
+          {
+            "name": "PRODUCT_FAMILY",
+            "dataType": "string",
+            "sourceColumn": "PRODUCT_FAMILY"
+          },
+          {
+            "name": "PRODUCT_GROUP",
+            "dataType": "string",
+            "sourceColumn": "PRODUCT_GROUP"
+          },
+          {
+            "name": "PRODUCT_LINE",
+            "dataType": "string",
+            "sourceColumn": "PRODUCT_LINE"
+          },
+          {
+            "name": "LIFECYCLE_STAGE",
+            "dataType": "string",
+            "sourceColumn": "LIFECYCLE_STAGE"
+          },
+          {
+            "name": "SILICON_BOM_MODEL",
+            "dataType": "string",
+            "sourceColumn": "SILICON_BOM_MODEL"
+          },
+          {
+            "name": "PACKAGE_LEADS",
+            "dataType": "string",
+            "sourceColumn": "PACKAGE_LEADS"
+          },
+          {
+            "name": "PACKAGE",
+            "dataType": "string",
+            "sourceColumn": "PACKAGE"
+          },
+          {
+            "name": "STWD_BUSINESS_UNIT",
+            "dataType": "string",
+            "sourceColumn": "STWD_BUSINESS_UNIT"
+          },
+          {
+            "type": "calculated",
+            "name": "SMS Phase",
+            "dataType": "string",
+            "isDataTypeInferred": true,
+            "expression": "CALCULATE(FIRSTNONBLANK(SMS[PHASE],TRUE()), FILTER(SMS,SMS[ORDER_PART_NUMBER]=Parts[PART_NAME]))"
+          },
+          {
+            "type": "calculated",
+            "name": "Phase",
+            "dataType": "string",
+            "isDataTypeInferred": true,
+            "expression": "IF(IFERROR(SEARCH(\"DVT\",Parts[PART_DESC]),-1) <> -1, \"DVT\",IF(IFERROR(SEARCH(\"EVT\",Parts[PART_NAME]),-1)<>-1,\"EVT\",IF(IFERROR(SEARCH(\"UU\",Parts[PART_NAME]),-1)<>-1,\"UU\",  IF(IFERROR(SEARCH(\"UF\",Parts[PART_NAME]),-1)<>-1,\"UF\",  IF(IFERROR(SEARCH(\"Plat SI\",Parts[PART_NAME]),-1)<>-1,\"Plat SI\", IF(IFERROR(SEARCH(\"Proto\",Parts[PART_NAME]),-1)<>-1,\"Proto\", IF(IFERROR(SEARCH(\"Corner\",Parts[PART_NAME]),-1)<>-1,\"Corner\", Parts[SMS Phase])))))))"
+          },
+          {
+            "name": "PART_DESC",
+            "dataType": "string",
+            "sourceColumn": "PART_DESC"
+          },
+          {
+            "name": "PART_NAME_COMBINED",
+            "dataType": "string",
+            "sourceColumn": "PART_NAME_COMBINED"
+          },
+          {
+            "type": "calculated",
+            "name": "PSF",
+            "dataType": "string",
+            "isDataTypeInferred": true,
+            "expression": "IF(Parts[PRODUCT_SUB_FAMILY] = BLANK(), LOOKUPVALUE(Br_UPDPSF[UPD_PFS],Br_UPDPSF[UPD_PFS],Parts[PRODUCT_SUB_FAMILY]),Parts[PRODUCT_SUB_FAMILY])"
+          },
+          {
+            "type": "calculated",
+            "name": "BU",
+            "dataType": "string",
+            "isDataTypeInferred": true,
+            "expression": "IF(Parts[STWD_BUSINESS_UNIT] = BLANK(), LOOKUPVALUE(Br_BU[BU], Br_BU[PRODUCT_SUB_FAMILY], Parts[PSF]), Parts[STWD_BUSINESS_UNIT])"
+          },
+          {
+            "name": "PART_TYPE",
+            "dataType": "string",
+            "sourceColumn": "PART_TYPE"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Partition",
+            "dataView": "full",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = ",
+                "         Sql.Database(",
+                "        \"atlsqlprddbv4\", ",
+                "        \"UPD\", ",
+                "        [Query=\"",
+                "",
+                "",
+                "",
+                "",
+                "SELECT P.PART_NAME",
+                ",CASE WHEN RIGHT(P.PART_NAME,3) = '-MP'  THEN LEFT(P.PART_NAME, LEN(P.PART_NAME)-3) WHEN RIGHT(P.PART_NAME,3) = '-00'  THEN LEFT(P.PART_NAME, LEN(P.PART_NAME)-3) ELSE P.PART_NAME END AS PART_NAME_COMBINED",
+                ", PART_DESC, PART_TYPE",
+                ", EXTERNAL_DEVICE, SOCKET_CODE",
+                ", PRODUCT_SUB_FAMILY, PRODUCT_FAMILY ,PRODUCT_GROUP, PRODUCT_LINE",
+                ",LIFECYCLE_STAGE, SILICON_BOM_MODEL",
+                ",PACKAGE_LEADS,PACKAGE",
+                ",PA.STWD_BUSINESS_UNIT",
+                "FROM (SELECT * FROM UPD.dbo.PART ",
+                "WHERE 1=1",
+                "--AND PART_TYPE IN ( 'Ordering Part', 'Manufacturing Part', 'Motherboard','Graphics Board', 'Memory', 'Memory Circuit')",
+                ") P",
+                "LEFT JOIN UPD.dbo.PART_ATTRIBUTE PA ON P.PART_NAME = PA.PART_NAME",
+                "LEFT JOIN (SELECT DISTINCT [UPD_Product_Subfamily] FROM  [AUSEDWDBP00].[MDS].[mdm].[stwd_SA_NPI_Samples] WHERE Is_Active = 'Y') MDS ON UPPER(MDS.[UPD_Product_Subfamily]) = UPPER(P.PRODUCT_SUB_FAMILY)",
+                "--WHERE UPPER(PRODUCT_SUB_FAMILY) IN-('BARCELO','CHAGALL','GENX_STK_1','MI200','NAVI33','REMBRANDT','REMBRANDT_LP','RAPHAEL')",
+                "",
+                "",
+                "",
+                "\"]",
+                "",
+                ")",
+                "",
+                "in",
+                "    Source"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "MOF",
+        "columns": [
+          {
+            "name": "VERSION",
+            "dataType": "string",
+            "sourceColumn": "VERSION"
+          },
+          {
+            "name": "FORECAST_QUARTER_CD",
+            "dataType": "string",
+            "sourceColumn": "FORECAST_QUARTER_CD"
+          },
+          {
+            "name": "FORECAST_MONTH_CD",
+            "dataType": "string",
+            "sourceColumn": "FORECAST_MONTH_CD"
+          },
+          {
+            "name": "PART_NAME",
+            "dataType": "string",
+            "sourceColumn": "PART_NAME"
+          },
+          {
+            "name": "MONTH_BEGIN_DT",
+            "dataType": "dateTime",
+            "sourceColumn": "MONTH_BEGIN_DT"
+          },
+          {
+            "name": "PRODUCT_SUB_FAMILY",
+            "dataType": "string",
+            "sourceColumn": "PRODUCT_SUB_FAMILY"
+          },
+          {
+            "name": "TYPE",
+            "dataType": "string",
+            "sourceColumn": "TYPE"
+          },
+          {
+            "name": "VER_ID",
+            "dataType": "int64",
+            "sourceColumn": "VER_ID"
+          },
+          {
+            "name": "VALUE",
+            "dataType": "double",
+            "sourceColumn": "VALUE"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Partition",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = ",
+                "         Sql.Database(\"atlsqlprddbv4\", \"UPD\", [Query=\"#(lf)SELECT DISTINCT MOF.* FROM (#(lf)     #(lf)SELECT M1.VER_ID,#(lf)#(tab)M1.[VERSION]#(lf)      ,M1.[FCST_QTR_CD] AS FORECAST_QUARTER_CD#(lf)      ,M1.[FCST_MNTH_CD] AS FORECAST_MONTH_CD#(lf)      ,M1.[PART_NAME]#(lf)      ,M1.[DIV_DEMAND_PLAN_UNITS] AS VALUE#(lf)      ,'MOF_QTY' AS TYPE#(lf)#(tab)  ,C.MONTH_BEGIN_DT#(lf)#(tab)  ,P.PRODUCT_SUB_FAMILY#(lf)FROM [UPD].[dbo].[MOF] M1#(lf)INNER JOIN  [UPD].[dbo].[vw_FISCAL_CALENDAR_DIM]  C ON M1.[FCST_MNTH_CD] = C.MONTH_CD COLLATE DATABASE_DEFAULT #(lf)INNER JOIN UPD.dbo.PART P ON P.PART_NAME = M1.PART_NAME#(lf)WHERE VERSION IN ( SELECT DISTINCT TOP 3 VERSION FROM [UPD].[dbo].[MOF] M2#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)WHERE LEN(Version) = 8 AND VERSION LIKE '%Q%M%'#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)ORDER BY VERSION DESC#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)) #(lf)--AND [DIV_DEMAND_PLAN_UNITS] <> 0#(lf)--AND C.Relative_Quarter_Seq_Num BETWEEN 0 AND 2#(lf)#(lf)UNION#(lf)#(lf)#(lf)SELECT M1.VER_ID,#(lf)#(tab)M1.[VERSION]#(lf)      ,M1.[FCST_QTR_CD] AS FORECAST_QUARTER_CD#(lf)      ,M1.[FCST_MNTH_CD] AS FORECAST_MONTH_CD#(lf)      ,M1.[PART_NAME]#(lf)      ,M1.[DIV_UPSIDE_UNITS]  AS VALUE#(lf)      ,'UPSIDE_QTY' AS TYPE#(lf)#(tab)  ,C.MONTH_BEGIN_DT#(lf)#(tab)  ,P.PRODUCT_SUB_FAMILY#(lf)FROM [UPD].[dbo].[MOF] M1#(lf)INNER JOIN  [UPD].[dbo].[vw_FISCAL_CALENDAR_DIM]  C ON M1.[FCST_MNTH_CD] = C.MONTH_CD COLLATE DATABASE_DEFAULT #(lf)INNER JOIN UPD.dbo.PART P ON P.PART_NAME = M1.PART_NAME#(lf)WHERE VERSION IN ( SELECT DISTINCT TOP 3 VERSION FROM [UPD].[dbo].[MOF] M2#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)WHERE LEN(Version) = 8 AND VERSION LIKE '%Q%M%'#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)ORDER BY VERSION DESC#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)) #(lf)--AND [DIV_DEMAND_PLAN_UNITS] <> 0#(lf)--AND C.Relative_Quarter_Seq_Num BETWEEN 0 AND 2#(lf)#(lf)) MOF#(lf)#(lf)#(lf)INNER JOIN (SELECT DISTINCT [UPD_Product_Subfamily] FROM  [AUSEDWDBP00].[MDS].[mdm].[stwd_SA_NPI_Samples] WHERE Is_Active = 'Y' ) MDS ON UPPER(MDS.[UPD_Product_Subfamily]) = UPPER(MOF.PRODUCT_SUB_FAMILY)#(lf)                    #(lf)\"])",
+                "in",
+                "    Source"
+              ]
+            },
+            "annotations": [
+              {
+                "name": "QueryEditorSerialization",
+                "value": [
+                  "<?xml version=\"1.0\" encoding=\"UTF-16\"?><Gemini xmlns=\"QueryEditorSerialization\"><AnnotationContent><![CDATA[<RSQueryCommandText>let",
+                  "    Source = ",
+                  "         Sql.Database(",
+                  "        \"atlsqlprddbv4\", ",
+                  "        \"UPD\", ",
+                  "        [Query=\"",
+                  "        ",
+                  "     ",
+                  "SELECT M1.VER_ID,",
+                  "\tM1.[VERSION]",
+                  "      ,M1.[FCST_QTR_CD] AS FORECAST_QUARTER_CD",
+                  "      ,M1.[FCST_MNTH_CD] AS FORECAST_MONTH_CD",
+                  "      ,M1.[PART_NAME]",
+                  "      ,M1.[DIV_UPSIDE_UNITS]  AS MOF_UPSIDE_QTY",
+                  "      ,M1.[DIV_DEMAND_PLAN_UNITS] AS MOF_QTY",
+                  "\t  ,C.MONTH_BEGIN_DT",
+                  "  FROM [UPD].[dbo].[MOF] M1",
+                  "  INNER JOIN [UPD].[dbo].[AMD_FISCAL_CALENDAR]  C ON M1.[FCST_MNTH_CD] = C.MONTH_CD COLLATE DATABASE_DEFAULT ",
+                  "  WHERE VERSION = ( SELECT DISTINCT TOP 1 VERSION FROM [UPD].[dbo].[MOF] M2",
+                  "\t\t\t\t\tWHERE LEN(Version) = 8 AND VERSION LIKE '%Q%M%'",
+                  "\t\t\t\t\tORDER BY VERSION DESC",
+                  "\t\t\t\t\t) ",
+                  "        AND [DIV_DEMAND_PLAN_UNITS] <> 0",
+                  "",
+                  "",
+                  "                    ",
+                  "        ",
+                  "        \"])",
+                  "",
+                  "in",
+                  "    Source</RSQueryCommandText><RSQueryCommandType>Text</RSQueryCommandType><RSQueryDesignState></RSQueryDesignState>]]></AnnotationContent></Gemini>"
+                ]
+              }
+            ]
+          }
+        ],
+        "measures": [
+          {
+            "name": "Sum of MOF_UPSIDE_QTY",
+            "expression": "CALCULATE([Sum of MOF VALUE], FILTER(MOF,   MOF[TYPE]= \"UPSIDE_QTY\"))",
+            "formatString": "#,##0"
+          },
+          {
+            "name": "Sum of MOF_QTY",
+            "expression": [
+              "  CALCULATE([Sum of MOF VALUE], FILTER(MOF,   MOF[TYPE]= \"MOF_QTY\")",
+              "",
+              ")"
+            ],
+            "formatString": "#,##0"
+          },
+          {
+            "name": "MOF Upside",
+            "expression": " MOF[Sum of MOF_UPSIDE_QTY]",
+            "formatString": "#,##0"
+          },
+          {
+            "name": "MOF",
+            "expression": "MOF[Sum of MOF_QTY]",
+            "formatString": "#,##0"
+          },
+          {
+            "name": "Sum of MOF VALUE",
+            "expression": "SUM([VALUE])",
+            "formatString": "#,##0"
+          },
+          {
+            "name": "VER_0",
+            "expression": "FORMAT(MAX(MOF[VER_ID]), \"\")"
+          },
+          {
+            "name": "VER_-1",
+            "expression": " VALUE(MEDIAN(MOF[VER_ID]))"
+          },
+          {
+            "name": "VER_-2",
+            "expression": " VALUE(MIN(MOF[VER_ID]))"
+          },
+          {
+            "name": "MOF Curr",
+            "expression": [
+              "CALCULATE (",
+              "    SUM(MOF[VALUE]),",
+              "    FILTER (  MOF ,  MOF[TYPE]=\"MOF_QTY\" &&  MOF[VER_ID] = MAX(MOF[VER_ID])))--  FORMAT(MOF[VER_ID], \" \") =[VER_0]))"
+            ],
+            "formatString": "#,##0"
+          },
+          {
+            "name": "MOF Curr-1",
+            "expression": [
+              "CALCULATE (",
+              "    SUM(MOF[VALUE]),",
+              "    FILTER (  MOF ,  MOF[TYPE]=\"MOF_QTY\" &&  MOF[VER_ID] = MEDIAN(MOF[VER_ID])))--  FORMAT(MOF[VER_ID], \" \") =[VER_0]))"
+            ],
+            "formatString": "#,##0"
+          },
+          {
+            "name": "MOF Curr-2",
+            "expression": [
+              "CALCULATE (",
+              "    SUM(MOF[VALUE]),",
+              "    FILTER (  MOF ,  MOF[TYPE]=\"MOF_QTY\" &&  MOF[VER_ID] = MIN(MOF[VER_ID])))--  FORMAT(MOF[VER_ID], \" \") =[VER_0]))"
+            ],
+            "formatString": "#,##0"
+          },
+          {
+            "name": "MOF Upside Curr",
+            "expression": [
+              "CALCULATE (",
+              "    SUM(MOF[VALUE]),",
+              "    FILTER (  MOF ,  MOF[TYPE]=\"UPSIDE_QTY\" &&  MOF[VER_ID] = MAX(MOF[VER_ID])))--  FORMAT(MOF[VER_ID], \" \") =[VER_0]))"
+            ],
+            "formatString": "#,##0"
+          },
+          {
+            "name": "MOF Upside Curr-1",
+            "expression": [
+              "CALCULATE (",
+              "    SUM(MOF[VALUE]),",
+              "    FILTER (  MOF ,  MOF[TYPE]=\"UPSIDE_QTY\" &&  MOF[VER_ID] = MEDIAN(MOF[VER_ID])))--  FORMAT(MOF[VER_ID], \" \") =[VER_0]))"
+            ],
+            "formatString": "#,##0"
+          },
+          {
+            "name": "MOF Upside Curr-2",
+            "expression": [
+              "CALCULATE (",
+              "    SUM(MOF[VALUE]),",
+              "    FILTER (  MOF ,  MOF[TYPE]=\"UPSIDE_QTY\" &&  MOF[VER_ID] = MIN(MOF[VER_ID])))--  FORMAT(MOF[VER_ID], \" \") =[VER_0]))"
+            ],
+            "formatString": "#,##0"
+          }
+        ]
+      },
+      {
+        "name": "Date",
+        "columns": [
+          {
+            "name": "Date_Key",
+            "dataType": "int64",
+            "sourceColumn": "Date_Key"
+          },
+          {
+            "name": "Week_Cd",
+            "dataType": "string",
+            "sourceColumn": "Week_Cd"
+          },
+          {
+            "name": "Week_Begin_Dt",
+            "dataType": "dateTime",
+            "sourceColumn": "Week_Begin_Dt"
+          },
+          {
+            "name": "Month_Cd",
+            "dataType": "string",
+            "sourceColumn": "Month_Cd"
+          },
+          {
+            "name": "Month_Begin_Dt",
+            "dataType": "dateTime",
+            "sourceColumn": "Month_Begin_Dt"
+          },
+          {
+            "name": "Quarter_Cd",
+            "dataType": "string",
+            "sourceColumn": "Quarter_Cd"
+          },
+          {
+            "name": "Quarter_Begin_Dt",
+            "dataType": "dateTime",
+            "sourceColumn": "Quarter_Begin_Dt"
+          },
+          {
+            "name": "Relative_Quarter_Seq_Num",
+            "dataType": "int64",
+            "sourceColumn": "Relative_Quarter_Seq_Num"
+          },
+          {
+            "name": "Date_Dt",
+            "dataType": "dateTime",
+            "sourceColumn": "Date_Dt"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Partition",
+            "dataView": "full",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = ",
+                "         Sql.Database(",
+                "        \"atlsqlprddbv4\", ",
+                "        \"UPD\", ",
+                "        [Query=\"",
+                "",
+                "SELECT ",
+                "[Date_Key]",
+                ",[Date_Dt]",
+                ",[Week_Cd]",
+                ",[Week_Begin_Dt]",
+                ",[Month_Cd]",
+                ",[Month_Begin_Dt]",
+                ",[Quarter_Cd]",
+                ",[Quarter_Begin_Dt]",
+                ",[Relative_Quarter_Seq_Num]",
+                "FROM [UPD].[dbo].[vw_FISCAL_CALENDAR_DIM] C",
+                "WHERE C.Relative_Quarter_Seq_Num BETWEEN -2  AND 7       ",
+                "        \"])",
+                "",
+                "in",
+                "    Source"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "RR_Supply",
+        "columns": [
+          {
+            "name": "RUNID",
+            "dataType": "int64",
+            "sourceColumn": "RUNID"
+          },
+          {
+            "name": "OPN_TYPE",
+            "dataType": "string",
+            "sourceColumn": "OPN_TYPE"
+          },
+          {
+            "name": "OPN",
+            "dataType": "string",
+            "sourceColumn": "OPN"
+          },
+          {
+            "name": "MEASURE",
+            "dataType": "string",
+            "sourceColumn": "MEASURE"
+          },
+          {
+            "name": "QUARTER",
+            "dataType": "string",
+            "sourceColumn": "QUARTER"
+          },
+          {
+            "name": "MONTH",
+            "dataType": "string",
+            "sourceColumn": "MONTH"
+          },
+          {
+            "name": "WEEK",
+            "dataType": "string",
+            "sourceColumn": "WEEK"
+          },
+          {
+            "name": "WEEK_BEGIN_DT",
+            "dataType": "dateTime",
+            "sourceColumn": "WEEK_BEGIN_DT"
+          },
+          {
+            "name": "RR_SPLY",
+            "dataType": "double",
+            "sourceColumn": "RR_SPLY"
+          },
+          {
+            "name": "PRODUCT_SUB_FAMILY",
+            "dataType": "string",
+            "sourceColumn": "PRODUCT_SUB_FAMILY"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Partition",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = ",
+                "         Sql.Database(",
+                "        \"atlsqlprddbv4\", ",
+                "        \"UPD\", ",
+                "        [Query=\"",
+                "        ",
+                "",
+                "SELECT DISTINCT SPLY.* FROM (        ",
+                "  SELECT ",
+                "   M1.[RUNID]",
+                "  ,M1.[OPN_TYPE]    ",
+                "  ,M1.[OPN]",
+                "  ,M1.[MEASURE] ",
+                "  ,M1.[QUARTER] ",
+                "  ,M1.[MONTH]   ",
+                "  ,M1.[WEEK]    ",
+                "  ,M1.[QUANTITY] AS RR_SPLY",
+                "  ,C.WEEK_BEGIN_DT",
+                "  ,P.PRODUCT_SUB_FAMILY",
+                "  FROM [UPD].[Reporting].[MAIN_ALL] M1",
+                "  INNER JOIN [UPD].[dbo].[vw_FISCAL_CALENDAR_DIM] C ON M1.[WEEK] = C.WEEK_CD COLLATE DATABASE_DEFAULT",
+                "  INNER JOIN UPD.dbo.PART P ON P.PART_NAME = M1.OPN",
+                "  WHERE RUNID= ( SELECT DISTINCT TOP 1 RUNID FROM [UPD].[Reporting].[MAIN_ALL] ORDER BY RUNID DESC)  AND M1.[MEASURE]= 'MAX_AVAILABLE_SUPPLY_CAP_BY_DMD'",
+                "--AND C.Relative_Quarter_Seq_Num BETWEEN 0 AND 2  ",
+                " ) SPLY",
+                "",
+                "",
+                "INNER JOIN (SELECT DISTINCT [UPD_Product_Subfamily] FROM  [AUSEDWDBP00].[MDS].[mdm].[stwd_SA_NPI_Samples] WHERE Is_Active = 'Y') MDS ON UPPER(MDS.[UPD_Product_Subfamily]) = UPPER(SPLY.PRODUCT_SUB_FAMILY)  ",
+                "",
+                "        ",
+                "        \"])",
+                "",
+                "in",
+                "    Source"
+              ]
+            },
+            "annotations": [
+              {
+                "name": "QueryEditorSerialization",
+                "value": [
+                  "<?xml version=\"1.0\" encoding=\"UTF-16\"?><Gemini xmlns=\"QueryEditorSerialization\"><AnnotationContent><![CDATA[<RSQueryCommandText>let",
+                  "    Source = ",
+                  "         Sql.Database(",
+                  "        \"atlsqlprddbv4\", ",
+                  "        \"UPD\", ",
+                  "        [Query=\"",
+                  "        ",
+                  "SELECT DISTINCT * (        ",
+                  "  SELECT ",
+                  "   M1.[RUNID]",
+                  "  ,M1.[OPN_TYPE]    ",
+                  "  ,M1.[OPN]",
+                  "  ,M1.[MEASURE] ",
+                  "  ,M1.[QUARTER] ",
+                  "  ,M1.[MONTH]   ",
+                  "  ,M1.[WEEK]    ",
+                  "  ,M1.[QUANTITY] AS RR_SPLY",
+                  "  ,C.WEEK_BEGIN_DT",
+                  "  FROM [UPD].[Reporting].[MAIN_ALL] M1",
+                  "  INNER JOIN [UPD].[dbo].[AMD_FISCAL_CALENDAR] C ON M1.[WEEK] = C.WEEK_CD COLLATE DATABASE_DEFAULT",
+                  "  WHERE RUNID= ( SELECT DISTINCT TOP 1 RUNID FROM [UPD].[Reporting].[MAIN_ALL] ORDER BY RUNID DESC)  AND M1.[MEASURE]= 'MAX_AVAILABLE_SUPPLY_CAP_BY_DMD'",
+                  "  ",
+                  " ) SPLY",
+                  "  ",
+                  "        ",
+                  "        \"])",
+                  "",
+                  "in",
+                  "    Source</RSQueryCommandText><RSQueryCommandType>Text</RSQueryCommandType><RSQueryDesignState></RSQueryDesignState>]]></AnnotationContent></Gemini>"
+                ]
+              }
+            ]
+          }
+        ],
+        "measures": [
+          {
+            "name": "Sum of RR_Sply",
+            "expression": "SUM([RR_SPLY])",
+            "formatString": "#,##0"
+          },
+          {
+            "name": "RR_Supply",
+            "expression": "[Sum of RR_Sply]",
+            "formatString": "#,##0"
+          },
+          {
+            "name": "RR_Supply_Prodution",
+            "expression": "CALCULATE(RR_Supply[RR_Supply], FILTER(RR_Supply,RR_Supply[OPN_TYPE]=\"PRODUCTION\"))",
+            "formatString": "#,##0"
+          },
+          {
+            "name": "RR_Supply_Sample",
+            "expression": "CALCULATE(RR_Supply[RR_Supply], FILTER(RR_Supply,RR_Supply[OPN_TYPE]=\"SAMPLE\"))",
+            "formatString": "#,##0"
+          }
+        ]
+      },
+      {
+        "name": "APO",
+        "columns": [
+          {
+            "name": "VER_ID",
+            "dataType": "int64",
+            "sourceColumn": "VER_ID"
+          },
+          {
+            "name": "PLANNING_WEEK_CD",
+            "dataType": "string",
+            "sourceColumn": "PLANNING_WEEK_CD"
+          },
+          {
+            "name": "DEMAND_TYPE",
+            "dataType": "string",
+            "sourceColumn": "DEMAND_TYPE"
+          },
+          {
+            "name": "OPN_TYPE",
+            "dataType": "string",
+            "sourceColumn": "OPN_TYPE"
+          },
+          {
+            "name": "PART_NAME",
+            "dataType": "string",
+            "sourceColumn": "PART_NAME"
+          },
+          {
+            "name": "RELATED_PART",
+            "dataType": "string",
+            "sourceColumn": "RELATED_PART"
+          },
+          {
+            "name": "PRODUCT_SUB_FAMILY",
+            "dataType": "string",
+            "sourceColumn": "PRODUCT_SUB_FAMILY"
+          },
+          {
+            "name": "WEEK_CD",
+            "dataType": "string",
+            "sourceColumn": "WEEK_CD"
+          },
+          {
+            "name": "MONTH_CD",
+            "dataType": "string",
+            "sourceColumn": "MONTH_CD"
+          },
+          {
+            "name": "QUARTER_CD",
+            "dataType": "string",
+            "sourceColumn": "QUARTER_CD"
+          },
+          {
+            "name": "WEEK_BEGIN_DT",
+            "dataType": "dateTime",
+            "sourceColumn": "WEEK_BEGIN_DT"
+          },
+          {
+            "name": "APO_QTY",
+            "dataType": "double",
+            "sourceColumn": "APO_QTY"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Partition",
+            "dataView": "full",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = ",
+                "         Sql.Database(",
+                "        \"atlsqlprddbv4\", ",
+                "        \"UPD\", ",
+                "        [Query=\"",
+                "        ",
+                "        ",
+                "SELECT DISTINCT *  FROM ",
+                "( ",
+                "  SELECT ",
+                "   F.[VER_ID]",
+                "  ,F.[PLANNING_WEEK_CD]",
+                "  ,F.DEMAND_TYPE",
+                "  ,F.[OPN_TYPE]",
+                "  ,F.[PART_NAME]",
+                "  ,F.[RELATED_PART] ",
+                "  ,F.[PRODUCT_SUB_FAMILY]",
+                "  ,F.[WEEK_CD]",
+                "  ,F.[MONTH_CD]",
+                "  ,F.[QUARTER_CD]",
+                "  ,F.[QUANTITY] AS APO_QTY",
+                "  ,C.WEEK_BEGIN_DT",
+                "FROM [UPD].[dbo].[vw_FORECAST_GOBI] F",
+                "INNER JOIN [UPD].[dbo].[vw_FISCAL_CALENDAR_DIM]  C ON F.WEEK_CD = C.WEEK_CD COLLATE DATABASE_DEFAULT",
+                "",
+                "",
+                "",
+                "INNER JOIN (SELECT DISTINCT [UPD_Product_Subfamily] FROM  [AUSEDWDBP00].[MDS].[mdm].[stwd_SA_NPI_Samples] WHERE Is_Active = 'Y') MDS ON UPPER(MDS.[UPD_Product_Subfamily]) = UPPER(F.PRODUCT_SUB_FAMILY)  ",
+                "",
+                "",
+                "",
+                "  WHERE VER_ID = ( SELECT DISTINCT TOP 1 VER_ID FROM [UPD].[dbo].[vw_FORECAST_GOBI] ORDER BY VER_ID DESC)  ",
+                "  AND DEMAND_TYPE IN ('APO')",
+                "--AND C.Relative_Quarter_Seq_Num BETWEEN 0 AND 2",
+                ") APO",
+                "",
+                "--WHERE WEEK_CD = (SELECT MAX(Week_Cd) FROM[UPD].[dbo].[vw_FISCAL_CALENDAR_DIM]  WHERE Relative_Week_Seq_Num = 0) COLLATE DATABASE_DEFAULT",
+                "        ",
+                "        \"])",
+                "",
+                "in",
+                "    Source"
+              ]
+            }
+          }
+        ],
+        "measures": [
+          {
+            "name": "Sum of APO_QTY",
+            "expression": "SUM([APO_QTY])",
+            "formatString": "#,##0"
+          },
+          {
+            "name": "Ship Plan",
+            "expression": "APO[Sum of APO_QTY]",
+            "formatString": "#,##0"
+          }
+        ]
+      },
+      {
+        "name": "SMS",
+        "columns": [
+          {
+            "name": "VER_ID",
+            "dataType": "int64",
+            "sourceColumn": "VER_ID"
+          },
+          {
+            "name": "ORDER_NUMBER",
+            "dataType": "string",
+            "sourceColumn": "ORDER_NUMBER"
+          },
+          {
+            "name": "ADI",
+            "dataType": "int64",
+            "sourceColumn": "ADI"
+          },
+          {
+            "name": "ADI_OPN",
+            "dataType": "string",
+            "sourceColumn": "ADI_OPN"
+          },
+          {
+            "name": "ORDER_PART_NUMBER",
+            "dataType": "string",
+            "sourceColumn": "ORDER_PART_NUMBER"
+          },
+          {
+            "name": "SAMPLE_ID",
+            "dataType": "string",
+            "sourceColumn": "SAMPLE_ID"
+          },
+          {
+            "name": "SAMPLE_NAME",
+            "dataType": "string",
+            "sourceColumn": "SAMPLE_NAME"
+          },
+          {
+            "name": "SAMPLE_TYPE",
+            "dataType": "string",
+            "sourceColumn": "SAMPLE_TYPE"
+          },
+          {
+            "name": "IS_CHILD_SILICON",
+            "dataType": "string",
+            "sourceColumn": "IS_CHILD_SILICON"
+          },
+          {
+            "name": "PHASE",
+            "dataType": "string",
+            "sourceColumn": "PHASE"
+          },
+          {
+            "name": "PACKAGE",
+            "dataType": "string",
+            "sourceColumn": "PACKAGE"
+          },
+          {
+            "name": "PROGRAM",
+            "dataType": "string",
+            "sourceColumn": "PROGRAM"
+          },
+          {
+            "name": "PROGRAM_PLAN",
+            "dataType": "string",
+            "sourceColumn": "PROGRAM_PLAN"
+          },
+          {
+            "name": "STATUS",
+            "dataType": "string",
+            "sourceColumn": "STATUS"
+          },
+          {
+            "name": "IS_ALLOCATED",
+            "dataType": "string",
+            "sourceColumn": "IS_ALLOCATED"
+          },
+          {
+            "name": "INTERNAL_EXTERNAL",
+            "dataType": "string",
+            "sourceColumn": "INTERNAL_EXTERNAL"
+          },
+          {
+            "name": "SAP_SO_NUMBER",
+            "dataType": "string",
+            "sourceColumn": "SAP_SO_NUMBER"
+          },
+          {
+            "name": "SAP_SO_LINE_NUMBER",
+            "dataType": "string",
+            "sourceColumn": "SAP_SO_LINE_NUMBER"
+          },
+          {
+            "name": "PRODUCT_SUB_FAMILY",
+            "dataType": "string",
+            "sourceColumn": "PRODUCT_SUB_FAMILY"
+          },
+          {
+            "name": "QTY",
+            "dataType": "int64",
+            "sourceColumn": "QTY"
+          },
+          {
+            "name": "SMS_DATE_KEY",
+            "dataType": "dateTime",
+            "sourceColumn": "SMS_DATE"
+          },
+          {
+            "name": "SMS_QTR",
+            "dataType": "string",
+            "sourceColumn": "SMS_QTR"
+          },
+          {
+            "name": "SMS_TYPE",
+            "dataType": "string",
+            "sourceColumn": "SMS_TYPE"
+          },
+          {
+            "type": "calculated",
+            "name": "SMS_DATE",
+            "dataType": "dateTime",
+            "isDataTypeInferred": true,
+            "expression": "SMS[SMS_DATE_KEY]"
+          },
+          {
+            "type": "calculated",
+            "name": "SMSPSF_Key",
+            "dataType": "string",
+            "isDataTypeInferred": true,
+            "expression": "CONCATENATE(SMS[ADI_OPN], SMS[PROGRAM])"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Partition",
+            "dataView": "full",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = ",
+                "         Sql.Database(\"atlsqlprddbv4\", \"UPD\", [Query=\"--100-000000824-91#(lf)#(lf)WITH CTE_SMS AS #(lf)(#(lf)--Demand #(lf)       SELECT S.[VER_ID]#(lf)      ,[ORDER_NUMBER]#(lf)      ,[ADI]#(lf)      ,[ADI_OPN]#(lf)      ,[ORDER_PART_NUMBER]#(lf)      ,[SAMPLE_ID]#(lf)      ,[SAMPLE_NAME]#(lf)      ,[SAMPLE_TYPE]#(lf)      ,[IS_CHILD_SILICON]#(lf)      ,[PHASE]#(lf)      ,S.[PACKAGE]#(lf)      ,UPPER([PROGRAM]) [PROGRAM]#(lf)      ,[PROGRAM_PLAN]#(lf)      ,[STATUS]#(lf)      ,[IS_ALLOCATED]#(lf)#(lf)      ,[QUANTITY] AS QTY #(lf)#(tab)  --,COALESCE([ORDER_REQUEST_DATE],[CHILD_SILICON_REQ_DATE]) AS SMS_DATE#(lf)      --,COALESCE([ORDER_REQUEST_DATE],RECEIVED_SHIPMENT_DATE) AS SMS_DATE#(lf)#(tab)  ,ORDER_REQUEST_DATE AS SMS_DATE#(lf)#(tab)  ,C_REQ.QUARTER_CD AS SMS_QTR#(lf)#(tab)  ,'QUANTITY/DEMAND' AS SMS_TYPE#(lf)      #(lf)#(lf)      ,[INTERNAL_EXTERNAL]#(lf)      ,[SAP_SO_NUMBER]#(lf)      ,[SAP_SO_LINE_NUMBER]#(lf)#(tab)  ,P.PRODUCT_SUB_FAMILY#(lf)  #(lf)  FROM [UPD].[dbo].[SMS] S#(lf)  LEFT JOIN ATLSQLPRDDBV4.[UPD].[dbo].[vw_FISCAL_CALENDAR_DIM]  C_REQ ON ORDER_REQUEST_DATE = C_REQ.DATE_DT #(lf)  LEFT JOIN ATLSQLPRDDBV4.UPD.dbo.PART P ON P.PART_NAME = S.ORDER_PART_NUMBER#(lf)  WHERE S.VER_ID = ( SELECT DISTINCT TOP 1 VER_ID FROM [UPD].[dbo].[SMS] ORDER BY VER_ID DESC)   #(lf)  #(lf)  UNION#(lf)#(lf)--BACKLOG#(lf)       SELECT S.[VER_ID]#(lf)      ,[ORDER_NUMBER]#(lf)      ,[ADI]#(lf)      ,[ADI_OPN]#(lf)      ,[ORDER_PART_NUMBER]#(lf)      ,[SAMPLE_ID]#(lf)      ,[SAMPLE_NAME]#(lf)      ,[SAMPLE_TYPE]#(lf)      ,[IS_CHILD_SILICON]#(lf)      ,[PHASE]#(lf)      ,S.[PACKAGE]#(lf)      ,UPPER([PROGRAM]) [PROGRAM]#(lf)      ,[PROGRAM_PLAN]#(lf)      ,[STATUS]#(lf)      ,[IS_ALLOCATED]#(lf)#(lf)      ,[QUANTITY_TO_SHIP] AS QTY#(lf)#(tab)  --,[REQUESTED_SHIP_DATE] AS SMS_DT#(lf)      ,COALESCE(REQUESTED_SHIP_DATE, [ORDER_REQUEST_DATE]) AS SMS_DATE#(lf)#(tab)  ,C_RQS.QUARTER_CD  AS SMS_QTR#(lf)#(tab)  ,'QUANTITY_TO_SHIP/BACKLOG' AS SMS_TYPE#(lf)#(lf)      ,[INTERNAL_EXTERNAL]#(lf)      ,[SAP_SO_NUMBER]#(lf)      ,[SAP_SO_LINE_NUMBER]#(lf)#(tab)  ,P.PRODUCT_SUB_FAMILY#(lf)  #(lf)  FROM [UPD].[dbo].[SMS] S#(lf)  LEFT JOIN ATLSQLPRDDBV4.[UPD].[dbo].[vw_FISCAL_CALENDAR_DIM]  C_RQS ON COALESCE(REQUESTED_SHIP_DATE, [ORDER_REQUEST_DATE]) = C_RQS.DATE_DT #(lf)  LEFT JOIN ATLSQLPRDDBV4.UPD.dbo.PART P ON P.PART_NAME = S.ORDER_PART_NUMBER#(lf)  WHERE S.VER_ID = ( SELECT DISTINCT TOP 1 VER_ID FROM [UPD].[dbo].[SMS] ORDER BY VER_ID DESC)   #(lf)#(lf)  UNION#(lf)#(lf)  --BILLING#(lf)#(lf)       SELECT S.[VER_ID]#(lf)      ,[ORDER_NUMBER]#(lf)      ,[ADI]#(lf)      ,[ADI_OPN]#(lf)      ,[ORDER_PART_NUMBER]#(lf)      ,[SAMPLE_ID]#(lf)      ,[SAMPLE_NAME]#(lf)      ,[SAMPLE_TYPE]#(lf)      ,[IS_CHILD_SILICON]#(lf)      ,[PHASE]#(lf)      ,S.[PACKAGE]#(lf)      ,UPPER([PROGRAM]) [PROGRAM]#(lf)      ,[PROGRAM_PLAN]#(lf)      ,[STATUS]#(lf)      ,[IS_ALLOCATED]#(lf)       #(lf)#(lf)      ,ALLOCATED_QUANTITY AS QTY#(lf)#(tab)  ,[ALLOCATION_DATE] AS SMS_DATE#(lf)      ,C_RDD.QUARTER_CD  AS SMS_QTR#(lf)      ,'ALLOCATED_QUANTITY/BILLING' AS SMS_TYPE#(lf)#(lf)      #(lf)      ,[INTERNAL_EXTERNAL]#(lf)      ,[SAP_SO_NUMBER]#(lf)      ,[SAP_SO_LINE_NUMBER]#(lf)#(tab)  ,P.PRODUCT_SUB_FAMILY#(lf)  #(lf)  FROM [UPD].[dbo].[SMS] S#(lf)  LEFT JOIN ATLSQLPRDDBV4.[UPD].[dbo].[vw_FISCAL_CALENDAR_DIM]  C_RDD ON [ALLOCATION_DATE] = C_RDD.DATE_DT#(lf)  LEFT JOIN ATLSQLPRDDBV4.UPD.dbo.PART P ON P.PART_NAME = S.ORDER_PART_NUMBER#(lf)  WHERE S.VER_ID = ( SELECT DISTINCT TOP 1 VER_ID FROM [UPD].[dbo].[SMS] ORDER BY VER_ID DESC)  #(lf)  #(lf)#(lf)    UNION#(lf)  -- INVENTORY#(lf)  SELECT #(lf)#(tab)   MIN(S.[VER_ID])  [VER_ID]#(lf)      ,MIN([ORDER_NUMBER]) [ORDER_NUMBER]#(lf)      ,[ADI]#(lf)      ,[ADI_OPN]#(lf)      ,MIN([ORDER_PART_NUMBER]) [ORDER_PART_NUMBER]#(lf)      ,MIN([SAMPLE_ID]) [SAMPLE_ID]#(lf)      ,MIN([SAMPLE_NAME]) [SAMPLE_NAME]#(lf)      ,MIN([SAMPLE_TYPE]) [SAMPLE_TYPE]#(lf)      ,MIN([IS_CHILD_SILICON]) [IS_CHILD_SILICON]#(lf)      ,MIN([PHASE]) [PHASE]#(lf)      ,MIN(S.[PACKAGE]) [PACKAGE]#(lf)      ,MIN(UPPER([PROGRAM])) [PROGRAM]#(lf)      ,[PROGRAM_PLAN]#(lf)      ,MIN([STATUS]) [STATUS]#(lf)      ,MIN([IS_ALLOCATED]) [IS_ALLOCATED]#(lf)#(lf)#(lf)#(lf)      ,AVG(RECEIVED_SHIPMENT_QTY)  AS QTY#(lf)#(tab)  ,MIN(RECEIVED_SHIPMENT_DATE) AS SMS_DATE#(lf)      ,MIN(C_AD.QUARTER_CD)  AS SMS_QTR#(lf)      ,'RECEIVED_SHIPMENT_QTY/INVENTORY' AS SMS_TYPE#(lf)#(lf)#(lf)#(tab)  ,MIN([INTERNAL_EXTERNAL]) [INTERNAL_EXTERNAL]#(lf)      ,MIN([SAP_SO_NUMBER])  [SAP_SO_NUMBER]#(lf)      ,MIN([SAP_SO_LINE_NUMBER]) [SAP_SO_LINE_NUMBER]#(lf)#(tab)  ,MIN(P.PRODUCT_SUB_FAMILY) PRODUCT_SUB_FAMILY#(lf)  #(lf)  FROM [UPD].[dbo].[SMS] S#(lf)  LEFT JOIN ATLSQLPRDDBV4.[UPD].[dbo].[vw_FISCAL_CALENDAR_DIM]  C_Ad ON RECEIVED_SHIPMENT_DATE = C_AD.DATE_DT#(lf)  LEFT JOIN ATLSQLPRDDBV4.UPD.dbo.PART P ON P.PART_NAME = S.ORDER_PART_NUMBER#(lf)  WHERE S.VER_ID = ( SELECT DISTINCT TOP 1 VER_ID FROM [UPD].[dbo].[SMS] ORDER BY VER_ID DESC)  #(lf)  GROUP BY ADI, [ADI_OPN], [PROGRAM_PLAN]#(lf)  #(lf)  ) #(lf)#(lf)#(lf)  #(lf)SELECT CTE_SMS.* FROM CTE_SMS#(lf)INNER JOIN (SELECT DISTINCT [SMS_Product_Subfamily] FROM  [AUSEDWDBP00].[MDS].[mdm].[stwd_SA_NPI_Samples] WHERE Is_Active = 'Y') MDS ON UPPER(MDS.[SMS_Product_Subfamily]) = UPPER(CTE_SMS.PROGRAM)  #(lf)--WHERE PROGRAM LIKE 'PHOENIX'#(lf)--WHERE 1=1 AND ADI_OPN = '100-000000824-91'#(lf)#(lf)UNION#(lf)#(lf)SELECT CTE_SMS.* FROM CTE_SMS#(lf)INNER JOIN (SELECT DISTINCT [UPD_Product_Subfamily] FROM  [AUSEDWDBP00].[MDS].[mdm].[stwd_SA_NPI_Samples] WHERE Is_Active = 'Y') MDS ON UPPER(MDS.[UPD_Product_Subfamily]) = UPPER(CTE_SMS.PRODUCT_SUB_FAMILY)  #(lf)--WHERE PROGRAM LIKE 'PHOENIX'#(lf)--WHERE 1=1 AND ADI_OPN = '100-000000824-91'#(lf)\"])",
+                "",
+                "in",
+                "    Source"
+              ]
+            }
+          }
+        ],
+        "measures": [
+          {
+            "name": "SMS Demand",
+            "expression": [
+              "CALCULATE (",
+              "    SUM(SMS[QTY]),",
+              "    FILTER (  SMS,  SMS[SMS_TYPE]=\"QUANTITY/DEMAND\" ))"
+            ],
+            "formatString": "#,##0"
+          },
+          {
+            "name": "SMS Backlog",
+            "expression": [
+              "CALCULATE (",
+              "    SUM(SMS[QTY]),",
+              "    FILTER (  SMS,  SMS[SMS_TYPE]=\"QUANTITY_TO_SHIP/BACKLOG\" ))"
+            ],
+            "formatString": "#,##0"
+          },
+          {
+            "name": "SMS Billing",
+            "expression": [
+              "CALCULATE (",
+              "    AVERAGE(SMS[QTY]),",
+              "    FILTER (  SMS,  SMS[SMS_TYPE]=\"ALLOCATED_QUANTITY/BILLING\" ))"
+            ],
+            "formatString": "#,##0"
+          },
+          {
+            "name": "SMS Inventory",
+            "expression": [
+              "CALCULATE (",
+              "    SUM(SMS[QTY]),",
+              "    FILTER (  SMS,  SMS[SMS_TYPE]=\"RECEIVED_SHIPMENT_QTY/INVENTORY\" ))"
+            ],
+            "formatString": "#,##0"
+          }
+        ]
+      },
+      {
+        "name": "Fsct_Qtr",
+        "columns": [
+          {
+            "type": "calculatedTableColumn",
+            "name": "Week_Date",
+            "dataType": "dateTime",
+            "isNameInferred": true,
+            "isDataTypeInferred": true,
+            "sourceColumn": "[Week_Date]"
+          },
+          {
+            "type": "calculatedTableColumn",
+            "name": "Week_Code",
+            "dataType": "string",
+            "isNameInferred": true,
+            "isDataTypeInferred": true,
+            "sourceColumn": "[Week_Code]"
+          },
+          {
+            "type": "calculatedTableColumn",
+            "name": "Month_Code",
+            "dataType": "string",
+            "isNameInferred": true,
+            "isDataTypeInferred": true,
+            "sourceColumn": "[Month_Code]"
+          },
+          {
+            "type": "calculatedTableColumn",
+            "name": "Quarter_Code",
+            "dataType": "string",
+            "isNameInferred": true,
+            "isDataTypeInferred": true,
+            "sourceColumn": "[Quarter_Code]"
+          },
+          {
+            "type": "calculatedTableColumn",
+            "name": "Month Date",
+            "dataType": "dateTime",
+            "isNameInferred": true,
+            "isDataTypeInferred": true,
+            "sourceColumn": "[Month Date]"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "CalculatedTable 1",
+            "source": {
+              "type": "calculated",
+              "expression": "DISTINCT(CALCULATETABLE(SELECTCOLUMNS('Date',\"Week_Date\", 'Date'[Week_Begin_Dt], \"Week_Code\", 'Date'[Week_Cd], \"Month Date\", 'Date'[Month_Begin_Dt], \"Month_Code\", 'Date'[Month_Cd], \"Quarter_Code\", 'Date'[Quarter_Cd])))"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Br_Mth",
+        "columns": [
+          {
+            "type": "calculatedTableColumn",
+            "name": "Month Date",
+            "dataType": "dateTime",
+            "isNameInferred": true,
+            "isDataTypeInferred": true,
+            "sourceColumn": "[Month Date]"
+          },
+          {
+            "type": "calculatedTableColumn",
+            "name": "Month_Code",
+            "dataType": "string",
+            "isNameInferred": true,
+            "isDataTypeInferred": true,
+            "sourceColumn": "[Month_Code]"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "CalculatedTable 1",
+            "source": {
+              "type": "calculated",
+              "expression": "DISTINCT(CALCULATETABLE(SELECTCOLUMNS('Date', \"Month Date\", 'Date'[Month_Begin_Dt], \"Month_Code\", 'Date'[Month_Cd])))"
+            }
+          }
+        ]
+      },
+      {
+        "name": "NPI_PSF",
+        "columns": [
+          {
+            "name": "UPD_Product_Subfamily",
+            "dataType": "string",
+            "sourceColumn": "UPD_Product_Subfamily"
+          },
+          {
+            "name": "SMS_Product_Subfamily",
+            "dataType": "string",
+            "sourceColumn": "SMS_Product_Subfamily"
+          },
+          {
+            "name": "Is_Active",
+            "dataType": "string",
+            "sourceColumn": "Is_Active"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Partition",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = ",
+                "         Sql.Database(",
+                "        \"AUSEDWDBP00\", ",
+                "        \"MDS\", ",
+                "        [Query=\"",
+                "        ",
+                "SELECT DISTINCT",
+                "      UPPER([UPD_Product_Subfamily]) [UPD_Product_Subfamily]",
+                "      ,UPPER([SMS_Product_Subfamily]) [SMS_Product_Subfamily]",
+                "      ,[Is_Active]",
+                "  FROM [MDS].[mdm].[stwd_SA_NPI_Samples]",
+                "WHERE 1=1",
+                "AND [Is_Active] =  'Y'",
+                "AND ([UPD_Product_Subfamily] IS NOT NULL OR [SMS_Product_Subfamily] IS NOT NULL)",
+                "        ",
+                "        \"",
+                "])",
+                "",
+                "in",
+                "    Source"
+              ]
+            },
+            "annotations": [
+              {
+                "name": "QueryEditorSerialization",
+                "value": [
+                  "<?xml version=\"1.0\" encoding=\"UTF-16\"?><Gemini xmlns=\"QueryEditorSerialization\"><AnnotationContent><![CDATA[<RSQueryCommandText>let",
+                  "    Source = ",
+                  "         Sql.Database(",
+                  "        \"AUSEDWDBP00\", ",
+                  "        \"MDS\", ",
+                  "        [Query=\"",
+                  "        ",
+                  "SELECT ",
+                  "      ,[UPD_Product_Subfamily]",
+                  "      ,[SMS_Product_Subfamily]",
+                  "      ,[Is_Active]",
+                  "  FROM [MDS].[mdm].[stwd_SA_NPI_Samples]",
+                  "        ",
+                  "        \"])",
+                  "",
+                  "in",
+                  "    Source</RSQueryCommandText><RSQueryCommandType>Text</RSQueryCommandType><RSQueryDesignState></RSQueryDesignState>]]></AnnotationContent></Gemini>"
+                ]
+              }
+            ]
+          }
+        ],
+        "measures": [
+          {
+            "name": "Count of UPD_Product_Subfamily",
+            "expression": "COUNTA([UPD_Product_Subfamily])"
+          },
+          {
+            "name": "Count of SMS_Product_Subfamily",
+            "expression": "COUNTA([SMS_Product_Subfamily])"
+          }
+        ]
+      },
+      {
+        "name": "Values",
+        "columns": [
+          {
+            "type": "calculatedTableColumn",
+            "name": "Type",
+            "dataType": "string",
+            "isNameInferred": false,
+            "isDataTypeInferred": true,
+            "sourceColumn": "[Values]"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "CalculatedTable 1",
+            "source": {
+              "type": "calculated",
+              "expression": [
+                "DATATABLE (",
+                "    \"Values\", STRING,",
+                "    {",
+                "",
+                "{ \"MOF\" },",
+                "{ \"MOF -1\" },       ",
+                "{ \"MOF -2\" },  ",
+                "{ \"MOF UPSIDE\" }, ",
+                "{ \"MOF UPSIDE -1\" },",
+                "{ \"MOF UPSIDE -2\" }, ",
+                "{ \"APO\" }, ",
+                "{ \"SMS DEMAND\" },",
+                "{ \"SMS BILLING\" },",
+                "{ \"SMS BACKLOG\" },",
+                "{ \"RR SUPPLY PRODUCTION\" },",
+                "{ \"RR SUPPLY SAMPLE\" }",
+                "    }",
+                ")"
+              ]
+            }
+          }
+        ],
+        "measures": [
+          {
+            "name": "SelectedMeasure",
+            "expression": [
+              " ",
+              "IF (",
+              "    HASONEVALUE ('Values'[Type] ),",
+              "VALUES ('Values'[Type] ),",
+              "\"Values\"",
+              ")"
+            ],
+            "formatString": "#,##0"
+          },
+          {
+            "name": "Value",
+            "expression": [
+              "",
+              "VAR CurrentMeasure = [SelectedMeasure]",
+              "RETURN",
+              "SWITCH (",
+              "CurrentMeasure,",
+              "",
+              "\"MOF\", MOF[MOF Curr],",
+              "\"MOF -1\", MOF[MOF Curr-1],",
+              "\"MOF -2\", MOF[MOF Curr-2],",
+              "\"MOF UPSIDE\", [MOF Upside Curr],",
+              "\"MOF UPSIDE -1\", [MOF Upside Curr-1],",
+              "\"MOF UPSIDE -2\", [MOF Upside Curr-2],",
+              "\"APO\", APO[Ship Plan],",
+              "\"SMS DEMAND\", SMS[SMS Demand],",
+              "\"SMS BILLING\", SMS[SMS Billing],",
+              "\"SMS BACKLOG\", SMS[SMS Backlog],",
+              "\"RR SUPPLY PRODUCTION\", RR_Supply[RR_Supply_Prodution],",
+              "\"RR SUPPLY SAMPLE\", [RR_Supply_Sample]",
+              "",
+              ")",
+              ""
+            ],
+            "formatString": "#,##0"
+          }
+        ]
+      },
+      {
+        "name": "Br_BU",
+        "columns": [
+          {
+            "name": "PRODUCT_SUB_FAMILY",
+            "dataType": "string",
+            "sourceColumn": "PRODUCT_SUB_FAMILY"
+          },
+          {
+            "name": "BU",
+            "dataType": "string",
+            "sourceColumn": "BU"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Partition",
+            "dataView": "full",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = ",
+                "         Sql.Database(\"atlsqlprddbv4\", \"UPD\", [Query=\"#(lf)#(lf)SELECT#(lf)PRODUCT_SUB_FAMILY ,UPPER(MAX(PA.STWD_BUSINESS_UNIT)) AS BU#(lf)FROM (SELECT * FROM UPD.dbo.PART  WHERE PART_TYPE IN ( 'Ordering Part', 'Manufacturing Part', 'Motherboard','Graphics Board', 'Memory', 'Memory Circuit')) P#(lf)LEFT JOIN UPD.dbo.PART_ATTRIBUTE PA ON P.PART_NAME = PA.PART_NAME#(lf)LEFT JOIN (SELECT DISTINCT [UPD_Product_Subfamily] FROM  [AUSEDWDBP00].[MDS].[mdm].[stwd_SA_NPI_Samples]) MDS ON UPPER(MDS.[UPD_Product_Subfamily]) = UPPER(P.PRODUCT_SUB_FAMILY)#(lf)WHERE PA.STWD_BUSINESS_UNIT IS NOT NULL #(lf)GROUP BY PRODUCT_SUB_FAMILY #(lf)#(lf)#(lf)\"])",
+                "",
+                "in",
+                "    Source"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Br_SMSPSF",
+        "columns": [
+          {
+            "name": "ADI_OPN",
+            "dataType": "string",
+            "sourceColumn": "ADI_OPN"
+          },
+          {
+            "name": "PROGRAM",
+            "dataType": "string",
+            "sourceColumn": "PROGRAM"
+          },
+          {
+            "type": "calculated",
+            "name": "SMSPFS_Key",
+            "dataType": "string",
+            "isDataTypeInferred": true,
+            "expression": "CONCATENATE(Br_SMSPSF[ADI_OPN], Br_SMSPSF[PROGRAM])"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Partition",
+            "dataView": "full",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = ",
+                "         Sql.Database(\"atlsqlprddbv4\", \"UPD\", [Query=\"",
+                "",
+                "SELECT DISTINCT [ADI_OPN], UPPER([PROGRAM]) [PROGRAM] --UPPER(MAX([PROGRAM])) [PROGRAM]",
+                "  FROM [UPD].[dbo].[SMS] S",
+                "  WHERE 1=1 ",
+                "  AND S.VER_ID = ( SELECT DISTINCT TOP 1 VER_ID FROM [UPD].[dbo].[SMS] ORDER BY VER_ID DESC)  ",
+                "  --AND [ADI_OPN] = '102-D69401-00'",
+                "AND [ADI_OPN] IS NOT NULL ",
+                "-- GROUP BY [ADI_OPN]",
+                "",
+                "",
+                "\"])",
+                "",
+                "in",
+                "    Source"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Br_UPDPSF",
+        "columns": [
+          {
+            "type": "calculatedTableColumn",
+            "name": "UPD_PFS",
+            "dataType": "string",
+            "isNameInferred": true,
+            "isDataTypeInferred": true,
+            "sourceColumn": "[UPD_PFS]"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "CalculatedTable 1",
+            "source": {
+              "type": "calculated",
+              "expression": "DISTINCT(CALCULATETABLE(SELECTCOLUMNS(NPI_PSF, \"UPD_PFS\", NPI_PSF[UPD_Product_Subfamily])))"
+            }
+          }
+        ]
+      },
+      {
+        "name": "SMS Dump",
+        "columns": [
+          {
+            "name": "VER_ID",
+            "dataType": "int64",
+            "sourceColumn": "VER_ID"
+          },
+          {
+            "name": "ORDER_NUMBER",
+            "dataType": "string",
+            "sourceColumn": "ORDER_NUMBER"
+          },
+          {
+            "name": "ADI",
+            "dataType": "int64",
+            "sourceColumn": "ADI"
+          },
+          {
+            "name": "ADI_OPN",
+            "dataType": "string",
+            "sourceColumn": "ADI_OPN"
+          },
+          {
+            "name": "ORDER_PART_NUMBER",
+            "dataType": "string",
+            "sourceColumn": "ORDER_PART_NUMBER"
+          },
+          {
+            "name": "SAMPLE_ID",
+            "dataType": "string",
+            "sourceColumn": "SAMPLE_ID"
+          },
+          {
+            "name": "SAMPLE_NAME",
+            "dataType": "string",
+            "sourceColumn": "SAMPLE_NAME"
+          },
+          {
+            "name": "SAMPLE_TYPE",
+            "dataType": "string",
+            "sourceColumn": "SAMPLE_TYPE"
+          },
+          {
+            "name": "IS_CHILD_SILICON",
+            "dataType": "string",
+            "sourceColumn": "IS_CHILD_SILICON"
+          },
+          {
+            "name": "PHASE",
+            "dataType": "string",
+            "sourceColumn": "PHASE"
+          },
+          {
+            "name": "PACKAGE",
+            "dataType": "string",
+            "sourceColumn": "PACKAGE"
+          },
+          {
+            "name": "PROGRAM",
+            "dataType": "string",
+            "sourceColumn": "PROGRAM"
+          },
+          {
+            "name": "PROGRAM_PLAN",
+            "dataType": "string",
+            "sourceColumn": "PROGRAM_PLAN"
+          },
+          {
+            "name": "STATUS",
+            "dataType": "string",
+            "sourceColumn": "STATUS"
+          },
+          {
+            "name": "QUANTITY",
+            "dataType": "int64",
+            "sourceColumn": "QUANTITY"
+          },
+          {
+            "name": "IS_ALLOCATED",
+            "dataType": "string",
+            "sourceColumn": "IS_ALLOCATED"
+          },
+          {
+            "name": "ALLOCATED_QUANTITY",
+            "dataType": "int64",
+            "sourceColumn": "ALLOCATED_QUANTITY"
+          },
+          {
+            "name": "QUANTITY_TO_SHIP",
+            "dataType": "int64",
+            "sourceColumn": "QUANTITY_TO_SHIP"
+          },
+          {
+            "name": "ALLOCATION_DATE",
+            "dataType": "dateTime",
+            "sourceColumn": "ALLOCATION_DATE"
+          },
+          {
+            "name": "RECEIVED_SHIPMENT_QTY",
+            "dataType": "int64",
+            "sourceColumn": "RECEIVED_SHIPMENT_QTY"
+          },
+          {
+            "name": "RECEIVED_SHIPMENT_DATE",
+            "dataType": "dateTime",
+            "sourceColumn": "RECEIVED_SHIPMENT_DATE"
+          },
+          {
+            "name": "CHILD_SILICON_REQ_DATE",
+            "dataType": "dateTime",
+            "sourceColumn": "CHILD_SILICON_REQ_DATE"
+          },
+          {
+            "name": "ORDER_REQUEST_DATE",
+            "dataType": "dateTime",
+            "sourceColumn": "ORDER_REQUEST_DATE"
+          },
+          {
+            "name": "REQUESTED_SHIP_DATE",
+            "dataType": "dateTime",
+            "sourceColumn": "REQUESTED_SHIP_DATE"
+          },
+          {
+            "name": "INTERNAL_EXTERNAL",
+            "dataType": "string",
+            "sourceColumn": "INTERNAL_EXTERNAL"
+          },
+          {
+            "name": "SAP_SO_NUMBER",
+            "dataType": "string",
+            "sourceColumn": "SAP_SO_NUMBER"
+          },
+          {
+            "name": "SAP_SO_LINE_NUMBER",
+            "dataType": "string",
+            "sourceColumn": "SAP_SO_LINE_NUMBER"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Partition",
+            "dataView": "full",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = #\"SQL/atlsqlprddbv4;UPD\",",
+                "    dbo_SMS = Source{[Schema=\"dbo\",Item=\"SMS\"]}[Data]",
+                "in",
+                "    dbo_SMS"
+              ]
+            }
+          }
+        ],
+        "measures": [
+          {
+            "name": "Sum of ALLOCATED_QUANTITY",
+            "expression": "SUM([ALLOCATED_QUANTITY])",
+            "formatString": "#,##0"
+          },
+          {
+            "name": "Sum of QUANTITY_TO_SHIP",
+            "expression": "SUM([QUANTITY_TO_SHIP])",
+            "formatString": "#,##0"
+          },
+          {
+            "name": "Sum of RECEIVED_SHIPMENT_QTY",
+            "expression": "SUM([RECEIVED_SHIPMENT_QTY])",
+            "formatString": "#,##0"
+          },
+          {
+            "name": "Sum of QUANTITY",
+            "expression": "SUM([QUANTITY])",
+            "formatString": "#,##0"
+          }
+        ]
+      },
+      {
+        "name": "OPN Fallout",
+        "columns": [
+          {
+            "name": "ADI_OPN",
+            "dataType": "string",
+            "sourceColumn": "ADI_OPN"
+          },
+          {
+            "name": "PROGRAM",
+            "dataType": "string",
+            "sourceColumn": "PROGRAM"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Partition",
+            "dataView": "full",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = ",
+                "         Sql.Database(\"atlsqlprddbv4\", \"UPD\", [Query=\"#(lf)WITH CTE_Fallout AS #(lf)(#(lf)SELECT DISTINCT ADI_OPN FROM SMS WHERE VER_ID = (SELECT MAX(VER_ID) FROM SMS) -- 577#(lf)EXCEPT #(lf)SELECT DISTINCT PART_NAME FROM PART WHERE VER_ID = (SELECT MAX(VER_ID) FROM PART) -- 457 392#(lf))#(lf)#(lf)SELECT DISTINCT PROGRAM, ADI_OPN FROM SMS WHERE ADI_OPN IN (SELECT ADI_OPN FROM CTE_Fallout )#(lf)AND ADI_OPN IS NOT NULL\"])",
+                "",
+                "in",
+                "    Source"
+              ]
+            }
+          }
+        ],
+        "measures": [
+          {
+            "name": "Count of ADI_OPN",
+            "expression": "COUNTA([ADI_OPN])"
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "d3fcb2a1-2d14-40a1-b5ba-31d8b1581e7d",
+        "fromTable": "MOF",
+        "fromColumn": "PART_NAME",
+        "toTable": "Parts",
+        "toColumn": "PART_NAME"
+      },
+      {
+        "name": "4c5195db-741f-4774-bf94-705c1b61d826",
+        "fromTable": "RR_Supply",
+        "fromColumn": "OPN",
+        "toTable": "Parts",
+        "toColumn": "PART_NAME"
+      },
+      {
+        "name": "5a49d127-5466-46d2-b763-56db5863bbfe",
+        "fromTable": "APO",
+        "fromColumn": "PART_NAME",
+        "toTable": "Parts",
+        "toColumn": "PART_NAME"
+      },
+      {
+        "name": "fe2f0052-443b-454f-a0cc-3749c5509296",
+        "fromTable": "MOF",
+        "fromColumn": "MONTH_BEGIN_DT",
+        "toTable": "Date",
+        "toColumn": "Date_Dt"
+      },
+      {
+        "name": "f18071e3-2202-4df8-8f7a-9c309be284f6",
+        "fromTable": "RR_Supply",
+        "fromColumn": "WEEK_BEGIN_DT",
+        "toTable": "Date",
+        "toColumn": "Date_Dt"
+      },
+      {
+        "name": "e8ea818e-2d92-41f0-aeb5-a3ae5f0046ee",
+        "fromTable": "APO",
+        "fromColumn": "WEEK_BEGIN_DT",
+        "toTable": "Date",
+        "toColumn": "Date_Dt"
+      },
+      {
+        "name": "c48a1999-999d-4a11-963e-424981312792",
+        "fromTable": "APO",
+        "fromColumn": "WEEK_BEGIN_DT",
+        "toTable": "Fsct_Qtr",
+        "toColumn": "Week_Date"
+      },
+      {
+        "name": "fee77e43-7865-4551-b3f5-bb04bfcc0761",
+        "fromTable": "MOF",
+        "fromColumn": "MONTH_BEGIN_DT",
+        "toTable": "Fsct_Qtr",
+        "toColumn": "Week_Date"
+      },
+      {
+        "name": "969bda18-0cc3-407f-a459-c5994ad914ca",
+        "fromTable": "RR_Supply",
+        "fromColumn": "WEEK_BEGIN_DT",
+        "toTable": "Fsct_Qtr",
+        "toColumn": "Week_Date"
+      },
+      {
+        "name": "3933b341-8d58-49b5-8285-0e4d78c10d18",
+        "fromTable": "SMS",
+        "fromColumn": "SMS_DATE_KEY",
+        "toTable": "Date",
+        "toColumn": "Date_Dt"
+      },
+      {
+        "name": "55f37d9c-45b4-4b51-8c5d-e02e9115298d",
+        "fromTable": "NPI_PSF",
+        "fromColumn": "UPD_Product_Subfamily",
+        "toTable": "Br_UPDPSF",
+        "toColumn": "UPD_PFS"
+      },
+      {
+        "name": "23523be5-b392-4be9-bf8b-85fefdb575a1",
+        "fromTable": "Parts",
+        "fromColumn": "PRODUCT_SUB_FAMILY",
+        "toTable": "Br_UPDPSF",
+        "toColumn": "UPD_PFS"
+      },
+      {
+        "name": "b9a09868-8f84-4628-bb6b-45034690f689",
+        "fromTable": "Parts",
+        "fromColumn": "PRODUCT_SUB_FAMILY",
+        "toTable": "Br_BU",
+        "toColumn": "PRODUCT_SUB_FAMILY"
+      },
+      {
+        "name": "bc28a4e6-5174-448a-ad97-a16d701ea1d5",
+        "fromTable": "SMS",
+        "fromColumn": "SMSPSF_Key",
+        "toTable": "Br_SMSPSF",
+        "toColumn": "SMSPFS_Key"
+      },
+      {
+        "name": "24194022-7c42-477b-8919-5af42f6435f8",
+        "fromTable": "Br_SMSPSF",
+        "fromColumn": "ADI_OPN",
+        "toTable": "Parts",
+        "toColumn": "PART_NAME"
+      }
+    ],
+    "perspectives": [
+      {
+        "name": "SMS",
+        "tables": [
+          {
+            "name": "SMS",
+            "columns": [
+              {
+                "name": "ADI"
+              },
+              {
+                "name": "ADI_OPN"
+              },
+              {
+                "name": "INTERNAL_EXTERNAL"
+              },
+              {
+                "name": "IS_ALLOCATED"
+              },
+              {
+                "name": "IS_CHILD_SILICON"
+              },
+              {
+                "name": "ORDER_NUMBER"
+              },
+              {
+                "name": "ORDER_PART_NUMBER"
+              },
+              {
+                "name": "PACKAGE"
+              },
+              {
+                "name": "PHASE"
+              },
+              {
+                "name": "PRODUCT_SUB_FAMILY"
+              },
+              {
+                "name": "PROGRAM"
+              },
+              {
+                "name": "PROGRAM_PLAN"
+              },
+              {
+                "name": "QTY"
+              },
+              {
+                "name": "SAMPLE_ID"
+              },
+              {
+                "name": "SAMPLE_NAME"
+              },
+              {
+                "name": "SAMPLE_TYPE"
+              },
+              {
+                "name": "SAP_SO_LINE_NUMBER"
+              },
+              {
+                "name": "SAP_SO_NUMBER"
+              }
+            ],
+            "measures": [
+              {
+                "name": "SMS Backlog"
+              },
+              {
+                "name": "SMS Billing"
+              },
+              {
+                "name": "SMS Demand"
+              },
+              {
+                "name": "SMS Inventory"
+              }
+            ]
+          },
+          {
+            "name": "TimeStamp",
+            "columns": [
+              {
+                "name": "TimeStamp"
+              }
+            ]
+          },
+          {
+            "name": "Date",
+            "columns": [
+              {
+                "name": "Month_Cd"
+              },
+              {
+                "name": "Quarter_Cd"
+              },
+              {
+                "name": "Week_Cd"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Leadership",
+        "tables": [
+          {
+            "name": "APO",
+            "measures": [
+              {
+                "name": "Ship Plan"
+              }
+            ]
+          },
+          {
+            "name": "Date",
+            "columns": [
+              {
+                "name": "Month_Cd"
+              },
+              {
+                "name": "Quarter_Cd"
+              },
+              {
+                "name": "Week_Cd"
+              }
+            ]
+          },
+          {
+            "name": "MOF",
+            "columns": [
+              {
+                "name": "VERSION"
+              }
+            ],
+            "measures": [
+              {
+                "name": "MOF"
+              },
+              {
+                "name": "MOF Curr"
+              },
+              {
+                "name": "MOF Curr-1"
+              },
+              {
+                "name": "MOF Curr-2"
+              },
+              {
+                "name": "MOF Upside"
+              },
+              {
+                "name": "MOF Upside Curr"
+              },
+              {
+                "name": "MOF Upside Curr-1"
+              },
+              {
+                "name": "MOF Upside Curr-2"
+              }
+            ]
+          },
+          {
+            "name": "Parts",
+            "columns": [
+              {
+                "name": "EXTERNAL_DEVICE"
+              },
+              {
+                "name": "PACKAGE"
+              },
+              {
+                "name": "PACKAGE_LEADS"
+              },
+              {
+                "name": "PART_NAME"
+              },
+              {
+                "name": "PSF"
+              },
+              {
+                "name": "SOCKET_CODE"
+              },
+              {
+                "name": "STWD_BUSINESS_UNIT"
+              },
+              {
+                "name": "PART_TYPE"
+              }
+            ]
+          },
+          {
+            "name": "RR_Supply",
+            "measures": [
+              {
+                "name": "RR_Supply"
+              },
+              {
+                "name": "RR_Supply_Prodution"
+              },
+              {
+                "name": "RR_Supply_Sample"
+              }
+            ]
+          },
+          {
+            "name": "SMS",
+            "measures": [
+              {
+                "name": "SMS Backlog"
+              },
+              {
+                "name": "SMS Billing"
+              },
+              {
+                "name": "SMS Demand"
+              },
+              {
+                "name": "SMS Inventory"
+              }
+            ]
+          },
+          {
+            "name": "TimeStamp",
+            "columns": [
+              {
+                "name": "TimeStamp"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "SMS Dump",
+        "tables": [
+          {
+            "name": "SMS Dump",
+            "columns": [
+              {
+                "name": "ADI"
+              },
+              {
+                "name": "ADI_OPN"
+              },
+              {
+                "name": "ALLOCATED_QUANTITY"
+              },
+              {
+                "name": "ALLOCATION_DATE"
+              },
+              {
+                "name": "CHILD_SILICON_REQ_DATE"
+              },
+              {
+                "name": "INTERNAL_EXTERNAL"
+              },
+              {
+                "name": "IS_ALLOCATED"
+              },
+              {
+                "name": "IS_CHILD_SILICON"
+              },
+              {
+                "name": "ORDER_NUMBER"
+              },
+              {
+                "name": "ORDER_PART_NUMBER"
+              },
+              {
+                "name": "ORDER_REQUEST_DATE"
+              },
+              {
+                "name": "PACKAGE"
+              },
+              {
+                "name": "PHASE"
+              },
+              {
+                "name": "PROGRAM"
+              },
+              {
+                "name": "PROGRAM_PLAN"
+              },
+              {
+                "name": "QUANTITY"
+              },
+              {
+                "name": "QUANTITY_TO_SHIP"
+              },
+              {
+                "name": "RECEIVED_SHIPMENT_DATE"
+              },
+              {
+                "name": "RECEIVED_SHIPMENT_QTY"
+              },
+              {
+                "name": "REQUESTED_SHIP_DATE"
+              },
+              {
+                "name": "SAMPLE_ID"
+              },
+              {
+                "name": "SAMPLE_NAME"
+              },
+              {
+                "name": "SAMPLE_TYPE"
+              },
+              {
+                "name": "SAP_SO_LINE_NUMBER"
+              },
+              {
+                "name": "SAP_SO_NUMBER"
+              },
+              {
+                "name": "STATUS"
+              },
+              {
+                "name": "VER_ID"
+              }
+            ],
+            "measures": [
+              {
+                "name": "Sum of ALLOCATED_QUANTITY"
+              },
+              {
+                "name": "Sum of QUANTITY"
+              },
+              {
+                "name": "Sum of QUANTITY_TO_SHIP"
+              },
+              {
+                "name": "Sum of RECEIVED_SHIPMENT_QTY"
+              }
+            ]
+          },
+          {
+            "name": "TimeStamp",
+            "columns": [
+              {
+                "name": "TimeStamp"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "OPN Faillout",
+        "tables": [
+          {
+            "name": "OPN Fallout",
+            "columns": [
+              {
+                "name": "ADI_OPN"
+              },
+              {
+                "name": "PROGRAM"
+              }
+            ],
+            "measures": [
+              {
+                "name": "Count of ADI_OPN"
+              }
+            ]
+          },
+          {
+            "name": "TimeStamp",
+            "columns": [
+              {
+                "name": "TimeStamp"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "roles": [
+      {
+        "name": "Admin",
+        "modelPermission": "administrator",
+        "members": [
+          {
+            "memberName": "AMD\\dl.gobi_admin-1176713008",
+            "memberId": "S-1-5-21-249263827-1212357926-315576832-843873"
+          }
+        ]
+      },
+      {
+        "name": "Users",
+        "modelPermission": "read",
+        "members": [
+          {
+            "memberName": "AMD\\dl.GoBI_NPI_Samples",
+            "memberId": "S-1-5-21-249263827-1212357926-315576832-988501"
+          }
+        ]
+      }
+    ],
+    "annotations": [
+      {
+        "name": "ClientCompatibilityLevel",
+        "value": "500"
+      }
+    ]
+  },
+  "id": "SemanticModel"
+}
